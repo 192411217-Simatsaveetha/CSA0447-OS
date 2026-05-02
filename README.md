@@ -221,3 +221,122 @@ int main() {
 
     return 0;
 }
+
+#include <stdio.h>
+
+int main() {
+    int n, i, tq;
+    
+    printf("Total number of process in the system: ");
+    scanf("%d", &n);
+
+    int at[n], bt[n], rt[n], wt[n], tat[n];
+
+    for(i = 0; i < n; i++) {
+        printf("\nEnter the Arrival and Burst time of the Process[%d]\n", i+1);
+
+        printf("Arrival time is: ");
+        scanf("%d", &at[i]);
+
+        printf("Burst time is: ");
+        scanf("%d", &bt[i]);
+
+        rt[i] = bt[i]; // remaining time
+    }
+
+    printf("\nEnter the Time Quantum for the process: ");
+    scanf("%d", &tq);
+
+    int time = 0, done;
+    
+    // Round Robin Logic
+    do {
+        done = 1;
+        for(i = 0; i < n; i++) {
+            if(rt[i] > 0) {
+                done = 0;
+
+                if(rt[i] > tq) {
+                    time += tq;
+                    rt[i] -= tq;
+                } else {
+                    time += rt[i];
+                    wt[i] = time - bt[i];
+                    rt[i] = 0;
+                }
+            }
+        }
+    } while(!done);
+
+    // Turnaround Time
+    for(i = 0; i < n; i++) {
+        tat[i] = bt[i] + wt[i];
+    }
+
+    // Output
+    printf("\nProcess No\tBurst Time\tTAT\tWaiting Time\n");
+
+    float total_tat = 0, total_wt = 0;
+
+    for(i = 0; i < n; i++) {
+        printf("Process No[%d]\t%d\t\t%d\t%d\n",
+               i+1, bt[i], tat[i], wt[i]);
+
+        total_tat += tat[i];
+        total_wt += wt[i];
+    }
+
+    printf("\nAverage Turn Around Time: %.6f", total_tat/n);
+    printf("\nAverage Waiting Time: %.6f\n", total_wt/n);
+
+    return 0;
+}
+
+#include <stdio.h>
+
+struct Process {
+    int id, arrival, burst, start, end, waiting, turnaround;
+};
+
+int main() {
+    int n, i;
+    printf("Enter the number of processes\n");
+    scanf("%d", &n);
+
+    struct Process p[n];
+    for(i = 0; i < n; i++) {
+        p[i].id = i+1;
+        printf("Enter the arrival time and execution time for process %d\n", i+1);
+        scanf("%d %d", &p[i].arrival, &p[i].burst);
+    }
+
+    int current_time = 0;
+    float total_wait = 0, total_turnaround = 0;
+
+    for(i = 0; i < n; i++) {
+        if(current_time < p[i].arrival)
+            current_time = p[i].arrival;
+
+        p[i].start = current_time;
+        p[i].waiting = p[i].start - p[i].arrival;
+        p[i].end = p[i].start + p[i].burst;
+        p[i].turnaround = p[i].end - p[i].arrival;
+
+        current_time = p[i].end;
+
+        total_wait += p[i].waiting;
+        total_turnaround += p[i].turnaround;
+    }
+
+    printf("\nProcess |Arrival time |Execution time |Start time |End time |Waiting\n");
+    for(i = 0; i < n; i++) {
+        printf("p[%d]    | %d           | %d             | %d         | %d       | %d\n",
+               p[i].id, p[i].arrival, p[i].burst, p[i].start, p[i].end, p[i].waiting);
+    }
+
+    printf("\nAverage waiting time is %f", total_wait/n);
+    printf("\nAverage turnaround time is %f\n", total_turnaround/n);
+
+    return 0;
+}
+
