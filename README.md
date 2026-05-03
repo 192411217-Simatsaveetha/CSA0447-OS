@@ -340,3 +340,205 @@ int main() {
     return 0;
 }
 
+#include <stdio.h>
+
+int main() {
+    int n, tq;
+    int i, j;
+
+    printf("Total number of process in the system: ");
+    scanf("%d", &n);
+
+    int at[n], bt[n], rt[n];
+    int ct[n], tat[n], wt[n];
+
+    // Input
+    for (i = 0; i < n; i++) {
+        printf("\nEnter the Arrival and Burst time of the Process[%d]\n", i + 1);
+
+        printf("Arrival time is: ");
+        scanf("%d", &at[i]);
+
+        printf("\nBurst time is: ");
+        scanf("%d", &bt[i]);
+
+        rt[i] = bt[i];
+    }
+
+    printf("\nEnter the Time Quantum for the process: ");
+    scanf("%d", &tq);
+
+    int time = 0, completed = 0;
+
+    while (completed < n) {
+        int executed = 0;
+
+        for (i = 0; i < n; i++) {
+            if (at[i] <= time && rt[i] > 0) {
+                executed = 1;
+
+                if (rt[i] > tq) {
+                    time += tq;
+                    rt[i] -= tq;
+                } else {
+                    time += rt[i];
+                    ct[i] = time;
+                    rt[i] = 0;
+                    completed++;
+                }
+            }
+        }
+
+        if (!executed) {
+            time++;
+        }
+    }
+
+    // Calculate TAT and WT
+    float total_tat = 0, total_wt = 0;
+
+    for (i = 0; i < n; i++) {
+        tat[i] = ct[i] - at[i];
+        wt[i] = tat[i] - bt[i];
+    }
+
+    // Sort by completion time
+    for (i = 0; i < n - 1; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (ct[i] > ct[j]) {
+                int temp;
+
+                temp = ct[i]; ct[i] = ct[j]; ct[j] = temp;
+                temp = tat[i]; tat[i] = tat[j]; tat[j] = temp;
+                temp = wt[i]; wt[i] = wt[j]; wt[j] = temp;
+                temp = bt[i]; bt[i] = bt[j]; bt[j] = temp;
+                temp = at[i]; at[i] = at[j]; at[j] = temp;
+            }
+        }
+    }
+
+    // Output
+    printf("\nProcess No        Burst Time        TAT        Waiting Time\n");
+
+    for (i = 0; i < n; i++) {
+        printf("Process No[%d]        %d            %d            %d\n",
+               i + 1, bt[i], tat[i], wt[i]);
+
+        total_tat += tat[i];
+        total_wt += wt[i];
+    }
+
+    printf("\nAverage Turn Around Time: %f", total_tat / n);
+    printf("\nAverage Waiting Time: %f\n", total_wt / n);
+
+    return 0;
+}
+
+#include <stdio.h>
+#include <windows.h>
+
+int main() {
+    HANDLE hRead, hWrite;
+    char buffer[100];
+
+    // Create pipe
+    CreatePipe(&hRead, &hWrite, NULL, 0);
+
+    // -------- Producer --------
+    char msg[] = "Hello, message queue!";
+    DWORD written;
+
+    WriteFile(hWrite, msg, sizeof(msg), &written, NULL);
+    printf("Producer: Data sent to message queue: %s\n", msg);
+
+    // -------- Consumer --------
+    DWORD read;
+    ReadFile(hRead, buffer, sizeof(buffer), &read, NULL);
+
+    printf("Consumer: Data received from message queue: %s\n", buffer);
+
+    // Close handles
+    CloseHandle(hRead);
+    CloseHandle(hWrite);
+
+    return 0;
+}
+
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+
+// Message structure
+struct msg_buffer {
+    long msg_type;
+    char msg_text[100];
+};
+
+int main() {
+    key_t key;
+    int msgid;
+    struct msg_buffer message;
+
+    // Create unique key
+    key = ftok("msgqueuefile", 65);
+
+    // Create message queue
+    msgid = msgget(key, 0666 | IPC_CREAT);
+
+    // -------- Producer --------
+    message.msg_type = 1;
+    strcpy(message.msg_text, "Hello, message queue!");
+
+    msgsnd(msgid, &message, sizeof(message), 0);
+
+    printf("Producer: Data sent to message queue: %s\n", message.msg_text);
+
+    // -------- Consumer --------
+    msgrcv(msgid, &message, sizeof(message), 1, 0);
+
+    printf("Consumer: Data received from message queue: %s\n", message.msg_text);
+
+    // Delete message queue
+    msgctl(msgid, IPC_RMID, NULL);
+
+    return 0;
+}
+
+
+#include <stdio.h>
+#include <pthread.h>
+
+// Thread function 1
+void* thread1_func(void* arg) {
+    int i;
+    for (i = 1; i <= 5; i++) {
+        printf("Thread 1: %d\n", i);
+    }
+    return NULL;
+}
+
+// Thread function 2
+void* thread2_func(void* arg) {
+    int i;
+    for (i = 1; i <= 5; i++) {
+        printf("Thread 2: %d\n", i);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2;
+
+    // Create threads
+    pthread_create(&t1, NULL, thread1_func, NULL);
+    pthread_create(&t2, NULL, thread2_func, NULL);
+
+    // Wait for threads to finish
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    printf("Both threads have finished execution.\n");
+
+    return 0;
+}
