@@ -542,3 +542,81 @@ int main() {
 
     return 0;
 }
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char fn[50], pat[50], temp[200];
+    FILE *fp;
+
+    printf("Enter file name : ");
+    scanf("%s", fn);
+
+    printf("Enter the pattern: ");
+    scanf("%s", pat);
+
+    fp = fopen(fn, "r");
+
+    if (fp == NULL) {
+        printf("File not found!\n");
+        return 1;
+    }
+
+    printf("\nLines containing pattern \"%s\":\n\n", pat);
+
+    while (fgets(temp, sizeof(temp), fp) != NULL) {
+
+        // Check whether pattern exists in line
+        if (strstr(temp, pat) != NULL) {
+            printf("%s", temp);
+        }
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_LINE_LENGTH 1024
+
+void searchFile(const char *pattern, const char *filename)
+{
+    FILE *file = fopen(filename, "r");
+
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(1);
+    }
+
+    char line[MAX_LINE_LENGTH];
+
+    while (fgets(line, sizeof(line), file)) {
+
+        // Check if pattern exists in line
+        if (strstr(line, pattern) != NULL) {
+            printf("%s", line);
+        }
+    }
+
+    fclose(file);
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <pattern> <filename>\n", argv[0]);
+        return 1;
+    }
+
+    const char *pattern = argv[1];
+    const char *filename = argv[2];
+
+    printf("Lines containing \"%s\":\n\n", pattern);
+
+    searchFile(pattern, filename);
+
+    return 0;
+}
